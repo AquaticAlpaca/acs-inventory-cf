@@ -1,0 +1,22 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Create a DynamoDB table named 'acs-parts-inventory'
+
+Resources:
+  InventoryTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: acs-parts-inventory
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S  # S for String, N for Number, B for Binary
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH  # Partition key
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+Outputs:
+  InventoryTableName:
+    Description: "Name of the DynamoDB table"
+    Value: !Ref InventoryTable

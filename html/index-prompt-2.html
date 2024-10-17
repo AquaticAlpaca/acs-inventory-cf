@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Airplane Parts Availability</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .header {
+            background-color: #007bff;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .search-container {
+            margin: 20px;
+        }
+        .part-list {
+            margin: 20px;
+        }
+        .part-item {
+            border: 1px solid #007bff;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 10px;
+            background-color: #ffffff;
+        }
+        .no-parts {
+            text-align: center;
+            font-size: 1.5em;
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Airplane Parts Availability</h1>
+</div>
+
+<div class="search-container">
+    <div class="form-group">
+        <label for="partSearch" class="h4">Search for a Part:</label>
+        <input type="text" class="form-control form-control-lg" id="partSearch" placeholder="Enter part number or description" name="search">
+    </div>
+    <button class="btn btn-primary btn-lg btn-block" id="searchButton">Search</button>
+</div>
+
+<div class="part-list">
+    {% if parts %}
+        <h2 class="h4">Available Parts:</h2>
+        {% for part in parts %}
+            <div class="part-item">
+                <h5>{{ part.part_number }} - {{ part.description }}</h5>
+                <p><strong>Location:</strong> {{ part.location }}</p>
+                <p><strong>Quantity:</strong> {{ part.quantity }}</p>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="no-parts">
+            <p>No parts found. Please try a different search.</p>
+        </div>
+    {% endif %}
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+    document.getElementById('searchButton').addEventListener('click', function() {
+        const searchValue = document.getElementById('partSearch').value;
+        // Implement AJAX call to search for parts
+        // This is a placeholder for actual search functionality
+        alert('Searching for: ' + searchValue);
+    });
+</script>
+
+</body>
+</html>
