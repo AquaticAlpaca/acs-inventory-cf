@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parts Inventory System</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            margin-top: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        h1 {
+            color: #343a40;
+        }
+        .error {
+            color: red;
+            font-size: 0.9em;
+        }
+        .help-section {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+        }
+        .modal-header {
+            background-color: #007bff;
+            color: white;
+        }
+        .modal-footer {
+            border-top: none;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        .pagination .page-item.active .page-link {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        .pagination .page-link {
+            color: #007bff;
+        }
+        .pagination .page-link:hover {
+            background-color: #e9ecef;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-4 text-center">Parts Inventory System</h1>
+        
+        <div class="mb-3 text-right">
+            <button class="btn btn-primary" data-toggle="modal" data-target="#partModal">
+                <i class="fas fa-plus"></i> Add Part
+            </button>
+        </div>
+
+        <div class="input-group mb-3">
+            <input type="text" id="search" class="form-control" placeholder="Search parts..." aria-label="Search parts">
+            <div class="input-group-append">
+                <button class="btn btn-outline-secondary" type="button" id="searchButton">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+        
+        <table class="table table-striped table-bordered">
+            <thead class="thead-light">
+                <tr>
+                    <th onclick="sortTable('partNumber')" style="cursor: pointer;">Part Number</th>
+                    <th onclick="sortTable('description')" style="cursor: pointer;">Description</th>
+                    <th onclick="sortTable('location')" style="cursor: pointer;">Location</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="partsTableBody">
+                <!-- Dynamic rows will be inserted here -->
+            </tbody>
+        </table>
+
+        <nav>
+            <ul class="pagination justify-content-center" id="pagination">
+                <!-- Pagination buttons will be inserted here -->
+            </ul>
+        </nav>
+
+        <div class="help-section">
+            <h5>Help and Support</h5>
+            <p>If you need assistance, please contact <a href="mailto:aquaticalpaca@proton.me">aquaticalpaca@proton.me</a>.</p>
+        </div>
+    </div>
+
+    <!-- Modal for adding/editing parts -->
+    <div class="modal fade" id="partModal" tabindex="-1" role="dialog" aria-labelledby="partModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="partModalLabel">Add/Edit Part</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="partForm">
+                        <div class="form-group">
+                            <label for="partNumber">Part Number</label>
+                            <input type="text" class="form-control" id="partNumber" maxlength="100" required>
+                            <div class="error" id="partNumberError"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="description">Description</label>
+                            <input type="text" class="form-control" id="description" maxlength="100" required>
+                            <div class="error" id="descriptionError"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="location">Location</label>
+                            <select class="form-control" id="location" required>
+                                <option value="">Select Location</option>
+                                <option value="Warehouse A">Warehouse A</option>
+                                <option value="Warehouse B">Warehouse B</option>
+                                <option value="Warehouse C">Warehouse C</option>
+                            </select>
+                            <div class="error" id="locationError"></div>
+                        </div>
+                        <input type="hidden" id="partId">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        const apiUrl = 'YOUR_LAMBDA_ENDPOINT_URL'; // Replace with your Lambda endpoint URL
+        let parts = [];
+        let currentPage = 1;
+        const itemsPerPage = 5;
+
+        document.getElementById('partForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const partNumber = document.getElementById('partNumber').value;
+            const description = document.getElementById('description').value;
+            const location = document.getElementById('location').value;
+            const partId = document.getElementById('partId').value;
+
+            // Clear previous error messages
+            clearErrors();
+
+            // Validate inputs
+            if (!validateInputs(partNumber, description, location)) {
+                return;
+            }
+
+            const partData = {
+                partNumber,
+                description,
+                location,
+                ...(partId && { id: partId }) // Include id if editing
+            };
+
+            const method = partId ? 'PUT' : 'POST'; // Use PUT for editing, POST for adding
+
+            fetch(apiUrl, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(partData)
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => {
+                $('#partModal').modal('hide');
+                fetchParts(); // Refresh the parts list
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while saving the part. Please try again.');
+            });
+        });
+
+        function fetchParts() {
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    parts = data;
+                    renderTable();
+                })
+                .catch(error => {
+                    console.error('Error fetching parts:', error);
+                    alert('An error occurred while fetching parts. Please try again.');
+                });
+        }
+
+        function renderTable() {
+            const tableBody = document.getElementById('partsTableBody');
+            tableBody.innerHTML = '';
+
+            const filteredParts = parts.filter(part => {
+                const searchTerm = document.getElementById('search').value.toLowerCase();
+                return part.partNumber.toLowerCase().includes(searchTerm) ||
+                       part.description.toLowerCase().includes(searchTerm);
+            });
+
+            const totalPages = Math.ceil(filteredParts.length / itemsPerPage);
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const paginatedParts = filteredParts.slice(startIndex, endIndex);
+
+            paginatedParts.forEach(part => {
+                const row = `<tr>
+                    <td>${part.partNumber}</td>
+                    <td>${part.description}</td>
+                    <td>${part.location}</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" onclick="editPart('${part.id}')">                        <i class="fas fa-edit"></i> Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deletePart('${part.id}')"><i class="fas fa-trash"></i> Delete</button>
+                    </td>
+                </tr>`;
+                tableBody.innerHTML += row;
+            });
+
+            renderPagination(totalPages);
+        }
+
+        function renderPagination(totalPages) {
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = '';
+
+            for (let i = 1; i <= totalPages; i++) {
+                const pageItem = `<li class="page-item ${i === currentPage ? 'active' : ''}">
+                    <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
+                </li>`;
+                pagination.innerHTML += pageItem;
+            }
+        }
+
+        function changePage(page) {
+            currentPage = page;
+            renderTable();
+        }
+
+        function editPart(id) {
+            const part = parts.find(p => p.id === id);
+            if (part) {
+                document.getElementById('partNumber').value = part.partNumber;
+                document.getElementById('description').value = part.description;
+                document.getElementById('location').value = part.location;
+                document.getElementById('partId').value = part.id;
+                $('#partModal').modal('show');
+            }
+        }
+
+        function deletePart(id) {
+            if (confirm('Are you sure you want to delete this part?')) {
+                fetch(`${apiUrl}/${id}`, {
+                    method: 'DELETE'
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    fetchParts(); // Refresh the parts list
+                })
+                .catch(error => {
+                    console.error('Error deleting part:', error);
+                    alert('An error occurred while deleting the part. Please try again.');
+                });
+            }
+        }
+
+        function validateInputs(partNumber, description, location) {
+            let isValid = true;
+            if (!partNumber) {
+                document.getElementById('partNumberError').innerText = 'Part Number is required.';
+                isValid = false;
+            }
+            if (!description) {
+                document.getElementById('descriptionError').innerText = 'Description is required.';
+                isValid = false;
+            }
+            if (!location) {
+                document.getElementById('locationError').innerText = 'Location is required.';
+                isValid = false;
+            }
+            return isValid;
+        }
+
+        function clearErrors() {
+            document.getElementById('partNumberError').innerText = '';
+            document.getElementById('descriptionError').innerText = '';
+            document.getElementById('locationError').innerText = '';
+        }
+
+        // Initial fetch to load parts
+        fetchParts();
+
+        // Search functionality
+        document.getElementById('search').addEventListener('input', function() {
+            currentPage = 1; // Reset to first page on search
+            renderTable();
+        });
+    </script>
+</body>
+</html>
+
+

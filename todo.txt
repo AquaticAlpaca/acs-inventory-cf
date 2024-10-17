@@ -8,3 +8,8 @@ Toward that end, I need to deploy a static website to S3
  - Define a new HTML form template that can call the API Gateway
  - Define a new Cloudformation template to deploy the HTML to S3, and define a static S3 website
  - Use the new host name in the API Gateway stage allowed-hosts (or other policy as needed)
+
+
+Troubleshooting:
+ When testing the newly-uploaded website, I click the "Send Request" button and get the response "Error: NetworkError when attempting to fetch resource."
+ - Because CORS is not configured
