@@ -75,6 +75,31 @@ Resources:
       FunctionName: !Ref FetchItemsFunction
       Principal: apigateway.amazonaws.com
 
+  ApiGatewayStageProd:
+    UpdateReplacePolicy: Delete
+    Type: AWS::ApiGateway::Stage
+    DeletionPolicy: Delete
+    Properties:
+      RestApiId: !Ref ApiGateway
+      DeploymentId: !GetAtt ApiGatewayDeployment.DeploymentId
+      StageName: Prod
+      CacheClusterSize: '0.5'
+      TracingEnabled: false
+      CacheClusterEnabled: false
+    DependsOn:
+      - ApiMethod
+      - ApiGateway
+
+  ApiGatewayDeployment:
+    UpdateReplacePolicy: Delete
+    Type: AWS::ApiGateway::Deployment
+    DeletionPolicy: Delete
+    Properties:
+      RestApiId: !Ref ApiGateway
+    DependsOn:
+      - ApiMethod
+      - ApiGateway
+
 Outputs:
   ApiUrl:
     Description: "API Gateway endpoint URL for Prod stage"
