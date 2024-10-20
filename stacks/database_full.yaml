@@ -1,0 +1,86 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: DynamoDB Tables for ACS Inventory  with GSIs
+
+Resources:
+  InventoryItemsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: InventoryItems
+      AttributeDefinitions:
+        - AttributeName: PartID
+          AttributeType: S
+        - AttributeName: PartNumberOrDesc
+          AttributeType: S
+        - AttributeName: Name
+          AttributeType: S
+        - AttributeName: StatusID
+          AttributeType: S
+      KeySchema:
+        - AttributeName: PartID
+          KeyType: HASH  # Partition key
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: PartNumberIndex
+          KeySchema:
+            - AttributeName: PartNumberOrDesc
+              KeyType: HASH  # Partition key
+            - AttributeName: PartID
+              KeyType: RANGE # Sort key
+          Projection:
+            ProjectionType: ALL
+          BillingMode: PAY_PER_REQUEST
+        - IndexName: NameIndex
+          KeySchema:
+            - AttributeName: Name
+              KeyType: HASH  # Partition key
+            - AttributeName: PartID
+              KeyType: RANGE # Sort key
+          Projection:
+            ProjectionType: ALL
+         BillingMode: PAY_PER_REQUEST
+        - IndexName: StatusIndex
+          KeySchema:
+            - AttributeName: StatusID
+              KeyType: HASH  # Partition key
+            - AttributeName: PartID
+              KeyType: RANGE # Sort key
+          Projection:
+            ProjectionType: ALL
+          BillingMode: PAY_PER_REQUEST
+
+  StatusTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: Status
+      AttributeDefinitions:
+        - AttributeName: StatusID
+          AttributeType: S
+      KeySchema:
+        - AttributeName: StatusID
+          KeyType: HASH  # Partition key
+      BillingMode: PAY_PER_REQUEST
+
+  LocationTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: Location
+      AttributeDefinitions:
+        - AttributeName: LocationID
+          AttributeType: S
+      KeySchema:
+        - AttributeName: LocationID
+          KeyType: HASH  # Partition key
+      BillingMode: PAY_PER_REQUEST
+
+Outputs:
+  InventoryItemsTableName:
+    Description: "Name of the InventoryItems DynamoDB table"
+    Value: !Ref InventoryItemsTable
+
+  StatusTableName:
+    Description: "Name of the Status DynamoDB table"
+    Value: !Ref StatusTable
+
+  LocationTableName:
+    Description: "Name of the Location DynamoDB table"
+    Value: !Ref LocationTable

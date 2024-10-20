@@ -1,9 +1,9 @@
 #!/bin/sh
 
 cd ~/Development/acs/inventory
-zip one-read.zip one-read.py
-~/Development/aws-cli/aws s3 mb s3://acs-parts-inventory
-aws s3 cp one-read.zip s3://acs-parts-inventory/
+cd lambdas; zip one-read.zip one-read.py; cd ..
+# ~/Development/aws-cli/aws s3 mb s3://acs-parts-inventory
+aws s3 cp lambdas/one-read.zip s3://acs-parts-inventory/
 aws cloudformation create-stack --stack-name acs-inventory-lambda --template-body file://one-read-lambda.yaml --capabilities CAPABILITY_IAM
 aws cloudformation describe-stacks --stack-name acs-inventory-lambda
 # aws lambda invoke --function-name acs-inventory-LambdasStack-1KS4-FetchItemsFunction-vK2JTywwJB4p output.txt

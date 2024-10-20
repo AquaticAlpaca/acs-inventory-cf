@@ -12,10 +12,3 @@ Resources:
     Properties:
       TemplateURL: 'https://s3.amazonaws.com/acs-parts-inventory/stacks/lambdas.yaml'
     DependsOn: DatabaseStack
-
-  WebsiteStack:
-    Type: 'AWS::CloudFormation::Stack'
-    Properties:
-      TemplateURL: 'https://s3.amazonaws.com/acs-parts-inventory/stacks/website.yaml'
-    DeletionPolicy: Retain
-    DependsOn: LambdasStack

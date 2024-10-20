@@ -1,0 +1,37 @@
+Explanation of the Main Template
+
+    AWSTemplateFormatVersion: Specifies the version of the CloudFormation template format.
+    Description: A brief description of what the template does.
+    Resources: This section defines the resources that will be created.
+        InventoryItemsTable: This is the main DynamoDB table resource.
+            AttributeDefinitions: Defines the attributes used in the table and indexes.
+            KeySchema: Specifies the primary key for the table.
+            ProvisionedThroughput: Sets the read and write capacity units for the table and indexes.
+            GlobalSecondaryIndexes: Defines the GSIs for searching by PartNumberOrDesc, Name, and StatusID.
+    Outputs: This section provides outputs that can be useful after the stack is created, such as the name of the DynamoDB table.
+
+Note
+
+    Adjust the ReadCapacityUnits and WriteCapacityUnits based on your expected workload and access patterns.
+    If you plan to use on-demand capacity mode instead of provisioned capacity, you can remove the ProvisionedThroughput sections and set BillingMode: PAY_PER_REQUEST for the table and indexes.
+
+
+
+Explanation of the Status and Location Sections
+
+    StatusTable: This resource creates the Status table.
+        AttributeDefinitions: Defines the StatusID attribute.
+        KeySchema: Specifies StatusID as the partition key.
+        ProvisionedThroughput: Sets the read and write capacity units for the table.
+
+    LocationTable: This resource creates the Location table.
+        AttributeDefinitions: Defines the LocationID attribute.
+        KeySchema: Specifies LocationID as the partition key.
+        ProvisionedThroughput: Sets the read and write capacity units for the table.
+
+    Outputs: Additional outputs are provided for the Status and Location tables, allowing you to easily reference their names after the stack is created.
+
+Note
+
+    Adjust the ReadCapacityUnits and WriteCapacityUnits based on your expected workload and access patterns for all tables.
+    If you prefer on-demand capacity mode, you can remove the ProvisionedThroughput sections and set BillingMode: PAY_PER_REQUEST for each table.

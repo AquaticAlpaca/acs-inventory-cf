@@ -1,9 +1,0 @@
-Problem:
-
-The stack deploys a new copy of the website every time it is created
- - I want the site to be deployed only when it dooesn't already exists, but
- - Cloudformation doesn't provide a way to check this
-
-So, split the website into its own stack. Deploy it separately from the rest of the infrastructure
-
-Benefit: now we can specify the URL in one-read.py only once and expect it not to change.
